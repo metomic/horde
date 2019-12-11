@@ -19,7 +19,7 @@ defmodule HelloWorld.SayHello do
         {:ok, pid}
 
       {:error, {:already_started, pid}} ->
-        Logger.info("already started at #{inspect(pid)}, returning :ignore")
+        Logger.warn("already started at #{inspect(pid)}, returning :ignore")
         :ignore
     end
   end
@@ -30,15 +30,21 @@ defmodule HelloWorld.SayHello do
 
   def init(_args) do
     send(self(), :say_hello)
+    # Process.flag(:trap_exit, true)
 
     {:ok, get_global_counter()}
   end
 
   def handle_info(:say_hello, counter) do
     Logger.info("HELLO from node #{inspect(Node.self())}")
-    Process.send_after(self(), :say_hello, 5000)
+    Process.send_after(self(), :say_hello, 2000)
 
     {:noreply, put_global_counter(counter + 1)}
+  end
+
+  def handle_info(msg, counter) do
+    Logger.warn("Got message #{inspect(msg)}")
+    {:noreply, counter}
   end
 
   def handle_call(:how_many?, _from, counter) do

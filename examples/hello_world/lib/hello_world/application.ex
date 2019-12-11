@@ -12,24 +12,11 @@ defmodule HelloWorld.Application do
        [
          name: HelloWorld.HelloSupervisor,
          strategy: :one_for_one,
-         distribution_strategy: Horde.UniformQuorumDistribution,
-         max_restarts: 100_000,
-         max_seconds: 1,
+         distribution_strategy: Horde.UniformDistribution,
          members: supervisor_members()
        ]},
-      {Cluster.Supervisor, [Application.get_env(:libcluster, :topologies)]},
-      %{
-        id: HelloWorld.ClusterConnector,
-        restart: :transient,
-        start:
-          {Task, :start_link,
-           [
-             fn ->
-               Horde.DynamicSupervisor.wait_for_quorum(HelloWorld.HelloSupervisor, 30_000)
-               Horde.DynamicSupervisor.start_child(HelloWorld.HelloSupervisor, HelloWorld.SayHello)
-             end
-           ]}
-      }
+      Horde.StartGlobalProcess,
+      {Cluster.Supervisor, [Application.get_env(:libcluster, :topologies)]}
     ]
 
     opts = [strategy: :one_for_one, name: HelloWorld.Supervisor]
