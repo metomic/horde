@@ -42,13 +42,18 @@ defmodule Horde.Registry do
   """
   use Supervisor
 
+  @type options :: list(option())
   @type option ::
           {:keys, :unique}
           | {:name, atom()}
           | {:delta_crdt_options, [DeltaCrdt.crdt_option()]}
           | {:members, [Horde.Cluster.member()] | :auto}
 
-  @callback init(options :: Keyword.t()) :: {:ok, options :: Keyword.t()}
+  @callback init(options()) ::
+              {:ok, map()}
+              | {:ok, tuple()}
+              | :ignore
+              | {:stop, {:bad_return, {atom(), :init, any()}}}
   @callback child_spec(options :: [option()]) :: Supervisor.child_spec()
 
   defmacro __using__(options) do
